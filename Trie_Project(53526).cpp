@@ -1,8 +1,9 @@
 #include <iostream>
 #include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-// Trie Node class
+// Trie Node
 class TrieNode {
 public:
     unordered_map<char, TrieNode*> children;
@@ -13,7 +14,7 @@ public:
     }
 };
 
-// Trie class
+// Trie Class
 class Trie {
 private:
     TrieNode* root;
@@ -23,8 +24,15 @@ public:
         root = new TrieNode();
     }
 
+    // Clean input (remove spaces, convert to lowercase)
+    void cleanInput(string& str) {
+        str.erase(remove_if(str.begin(), str.end(), ::isspace), str.end());
+        transform(str.begin(), str.end(), str.begin(), ::tolower);
+    }
+
     // Insert a word
     void insert(string word) {
+        cleanInput(word);
         TrieNode* node = root;
         for (char ch : word) {
             if (!node->children[ch])
@@ -32,32 +40,49 @@ public:
             node = node->children[ch];
         }
         node->isEndOfWord = true;
+        cout << "[DEBUG] Inserted: " << word << endl;
     }
 
-    // Search for a word
+    // Search a word
     bool search(string word) {
+        cleanInput(word);
         TrieNode* node = root;
         for (char ch : word) {
             if (!node->children[ch])
                 return false;
             node = node->children[ch];
         }
+        cout << "[DEBUG] Searched: " << word << endl;
         return node->isEndOfWord;
     }
 
-    // Check if a prefix exists
+    // Check prefix
     bool startsWith(string prefix) {
+        cleanInput(prefix);
         TrieNode* node = root;
         for (char ch : prefix) {
             if (!node->children[ch])
                 return false;
             node = node->children[ch];
         }
+        cout << "[DEBUG] Prefix checked: " << prefix << endl;
         return true;
+    }
+
+    // Destructor
+    ~Trie() {
+        deleteNode(root);
+    }
+
+    void deleteNode(TrieNode* node) {
+        for (auto& pair : node->children) {
+            deleteNode(pair.second);
+        }
+        delete node;
     }
 };
 
-// Main function with menu
+// Main Menu
 int main() {
     Trie trie;
     int choice;
@@ -71,18 +96,18 @@ int main() {
         cout << "4. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
+        cin.ignore(); // Clear newline
 
         switch (choice) {
             case 1:
                 cout << "Enter word to insert: ";
-                cin >> word;
+                getline(cin, word);
                 trie.insert(word);
-                cout << "Word inserted.\n";
                 break;
 
             case 2:
                 cout << "Enter word to search: ";
-                cin >> word;
+                getline(cin, word);
                 if (trie.search(word))
                     cout << "Word found in Trie.\n";
                 else
@@ -91,7 +116,7 @@ int main() {
 
             case 3:
                 cout << "Enter prefix to check: ";
-                cin >> word;
+                getline(cin, word);
                 if (trie.startsWith(word))
                     cout << "Prefix exists in Trie.\n";
                 else
@@ -99,11 +124,11 @@ int main() {
                 break;
 
             case 4:
-                cout << "Exiting program.\n";
+                cout << "Exiting...\n";
                 return 0;
 
             default:
-                cout << "Invalid choice. Try again.\n";
+                cout << "Invalid choice.\n";
         }
     }
 
